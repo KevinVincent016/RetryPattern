@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Retry Pattern Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .retry-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .attempt {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .failure {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .timer {
+            font-size: 1.2em;
+            color: #666;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .config {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="retry-container">
+        <h1>Retry Pattern Visualizer</h1>
+        
+        <div class="config">
+            <h3>Configuración:</h3>
+            <p>• Máximo de intentos: 5</p>
+            <p>• Espera exponencial con jitter: 1-5 segundos</p>
+            <p>• Tipos de error manejados: RequestException, Exception</p>
+        </div>
+
+        <div class="controls">
+            <button onclick="startSimulation()">Iniciar Simulación</button>
+            <span class="timer"></span>
+        </div>
+
+        <div id="attempts">
+            <div class="attempt" id="attempt1">Intento 1: Conectando...</div>
+            <div class="attempt" id="attempt2">Intento 2: Conectando...</div>
+            <div class="attempt" id="attempt3">Intento 3: Conectando...</div>
+            <div class="attempt" id="attempt4">Intento 4: Conectando...</div>
+            <div class="attempt" id="attempt5">Intento 5: Conectando...</div>
+        </div>
+    </div>
+
+    <script>
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function startSimulation() {
+            const attempts = document.querySelectorAll('.attempt');
+            attempts.forEach(a => {
+                a.style.display = 'none';
+                a.className = 'attempt';
+            });
+
+            for (let i = 1; i <= 5; i++) {
+                const attempt = document.getElementById(`attempt${i}`);
+                attempt.style.display = 'block';
+                
+                // Simular tiempo de espera exponencial con jitter
+                const waitTime = Math.min(Math.pow(2, i-1) + Math.random() * 5, 5) * 1000;
+                const success = Math.random() > 0.7; // 30% de probabilidad de éxito
+
+                await sleep(waitTime);
+                
+                if (success && i < 5) {
+                    attempt.textContent = `Intento ${i}: ¡Éxito! Datos obtenidos.`;
+                    attempt.classList.add('success');
+                    break;
+                } else if (i === 5) {
+                    attempt.textContent = `Intento ${i}: ¡Éxito! Datos obtenidos.`;
+                    attempt.classList.add('success');
+                } else {
+                    attempt.textContent = `Intento ${i}: Error - Reintentando después de ${(waitTime/1000).toFixed(1)}s`;
+                    attempt.classList.add('failure');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
