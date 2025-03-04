@@ -85,10 +85,6 @@
     </div>
 
     <script>
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
         async function startSimulation() {
             const attempts = document.querySelectorAll('.attempt');
             attempts.forEach(a => {
@@ -100,22 +96,21 @@
                 const attempt = document.getElementById(`attempt${i}`);
                 attempt.style.display = 'block';
                 
-                // Simular tiempo de espera exponencial con jitter
-                const waitTime = Math.min(Math.pow(2, i-1) + Math.random() * 5, 5) * 1000;
-                const success = Math.random() > 0.7; // 30% de probabilidad de éxito
-
-                await sleep(waitTime);
-                
-                if (success && i < 5) {
-                    attempt.textContent = `Intento ${i}: ¡Éxito! Datos obtenidos.`;
-                    attempt.classList.add('success');
-                    break;
-                } else if (i === 5) {
-                    attempt.textContent = `Intento ${i}: ¡Éxito! Datos obtenidos.`;
-                    attempt.classList.add('success');
-                } else {
-                    attempt.textContent = `Intento ${i}: Error - Reintentando después de ${(waitTime/1000).toFixed(1)}s`;
+                try {
+                    const response = await fetch('/fetch');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        attempt.textContent = `Intento ${i}: ¡Éxito! ${JSON.stringify(result.data)}`;
+                        attempt.classList.add('success');
+                        break;
+                    } else {
+                        throw new Error(result.error);
+                    }
+                } catch (error) {
+                    attempt.textContent = `Intento ${i}: Error - ${error.message}`;
                     attempt.classList.add('failure');
+                    await sleep(Math.min(Math.pow(2, i-1) + Math.random() * 5, 5) * 1000);
                 }
             }
         }
